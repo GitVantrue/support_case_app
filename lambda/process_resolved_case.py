@@ -134,6 +134,43 @@ def get_case_details(case_id: str) -> Dict[str, Any]:
     Returns:
         케이스 정보 및 대화 내역을 포함한 딕셔너리
     """
+    # MOCK 모드: 테스트용 가짜 데이터 반환
+    if MOCK_MODE and (case_id.startswith('case-test-') or not case_id.startswith('case-')):
+        print(f"   [MOCK] 테스트 케이스 데이터 생성: {case_id}")
+        return {
+            'case': {
+                'caseId': case_id,
+                'displayId': '99999',
+                'subject': '[테스트] EC2 인스턴스 연결 불가',
+                'status': 'resolved',
+                'serviceCode': 'amazon-ec2',
+                'severityCode': 'high',
+                'timeCreated': '2025-12-04T10:00:00Z',
+                'timeResolved': '2025-12-04T15:00:00Z'
+            },
+            'communications': [
+                {
+                    'caseId': case_id,
+                    'body': '사용자: ap-northeast-2 리전의 EC2 인스턴스 i-1234567890에 SSH로 연결할 수 없습니다.',
+                    'submittedBy': 'user@example.com',
+                    'timeCreated': '2025-12-04T10:05:00Z'
+                },
+                {
+                    'caseId': case_id,
+                    'body': 'AWS Support: 보안 그룹 인바운드 규칙을 확인해주세요. SSH 포트(22)가 열려있는지 확인이 필요합니다.',
+                    'submittedBy': 'support@aws.amazon.com',
+                    'timeCreated': '2025-12-04T11:00:00Z'
+                },
+                {
+                    'caseId': case_id,
+                    'body': '사용자: 보안 그룹에 SSH 포트를 추가했더니 연결되었습니다. 감사합니다!',
+                    'submittedBy': 'user@example.com',
+                    'timeCreated': '2025-12-04T14:30:00Z'
+                }
+            ]
+        }
+    
+    # 실제 Support API 호출
     # 케이스 기본 정보 조회
     case_response = support_client.describe_cases(
         caseIdList=[case_id],
