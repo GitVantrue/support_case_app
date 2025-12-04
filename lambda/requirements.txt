@@ -1,0 +1,4 @@
+# Lambda 함수 의존성
+# Python 3.14
+
+boto3>=1.34.0
