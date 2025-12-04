@@ -272,9 +272,9 @@ def invoke_bedrock_with_retry(prompt: str, max_retries: int = 3) -> Dict[str, An
     
     for attempt in range(max_retries):
         try:
-            # us-east-1 리전의 Claude 3.5 Sonnet 사용
+            # Claude Sonnet 4.5 글로벌 inference profile 사용
             response = bedrock_runtime.invoke_model(
-                modelId='anthropic.claude-3-5-sonnet-20241022-v2:0',
+                modelId='arn:aws:bedrock:us-east-1:370662402529:inference-profile/global.anthropic.claude-sonnet-4-5-20250929-v1:0',
                 body=json.dumps({
                     'anthropic_version': 'bedrock-2023-05-31',
                     'max_tokens': 2000,
