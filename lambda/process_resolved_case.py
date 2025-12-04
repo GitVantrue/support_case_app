@@ -237,11 +237,16 @@ def summarize_with_bedrock(case_data: Dict[str, Any]) -> Dict[str, Any]:
 {{
   "category": "technical, billing, account 중 하나",
   "service": "ec2, rds, lambda, s3, vpc 등 AWS 서비스명 (소문자)",
-  "question": "핵심 질문을 1-2문장으로 요약",
-  "solution": "해결 방법을 3-5줄로 요약",
-  "steps": ["해결 단계1", "해결 단계2", "해결 단계3"],
-  "tags": ["관련", "키워드", "태그"]
+  "question": "사용자의 핵심 질문을 1-2문장으로 요약 (사용자가 처음 제기한 문제)",
+  "answer": "AWS Support 엔지니어의 최종 답변을 1-2문장으로 요약",
+  "solution": "문제 해결 방법을 3-5줄로 요약",
+  "steps": ["구체적인 해결 단계1", "구체적인 해결 단계2", "구체적인 해결 단계3"],
+  "tags": ["관련", "키워드", "태그"],
+  "user_messages": ["사용자가 보낸 주요 메시지들"],
+  "support_messages": ["AWS Support가 보낸 주요 답변들"]
 }}
+
+중요: question은 사용자의 질문, answer는 AWS Support의 답변, solution은 해결 방법으로 명확히 구분해주세요.
 """
     
     # Bedrock API 호출 (재시도 로직 포함)
