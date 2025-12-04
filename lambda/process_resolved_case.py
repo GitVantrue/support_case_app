@@ -20,9 +20,9 @@ DS_ID = os.environ.get('DS_ID', '')
 BUCKET_NAME = os.environ.get('BUCKET_NAME', 'support-knowledge-base')
 MOCK_MODE = os.environ.get('MOCK_MODE', 'false').lower() == 'true'
 
-# AWS 클라이언트 초기화 (ap-northeast-2 리전)
+# AWS 클라이언트 초기화
 s3_client = boto3.client('s3', region_name='ap-northeast-2')
-bedrock_runtime = boto3.client('bedrock-runtime', region_name='ap-northeast-2')
+bedrock_runtime = boto3.client('bedrock-runtime', region_name='us-east-1')  # Bedrock은 us-east-1 사용
 bedrock_agent = boto3.client('bedrock-agent', region_name='ap-northeast-2')
 support_client = boto3.client('support', region_name='us-east-1')  # Support API는 us-east-1
 
@@ -272,7 +272,7 @@ def invoke_bedrock_with_retry(prompt: str, max_retries: int = 3) -> Dict[str, An
     
     for attempt in range(max_retries):
         try:
-            # ap-northeast-2 리전에서 사용 가능한 모델
+            # us-east-1 리전의 Claude 3.5 Sonnet 사용
             response = bedrock_runtime.invoke_model(
                 modelId='anthropic.claude-3-5-sonnet-20241022-v2:0',
                 body=json.dumps({
