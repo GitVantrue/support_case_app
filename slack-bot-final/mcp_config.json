@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "bedrock-kb-retrieval": {
+      "command": "uvx",
+      "args": ["mcp-server-aws-kb-retrieval"],
+      "env": {
+        "KB_ID": "BECRJQ5RLE",
+        "AWS_REGION": "ap-northeast-2"
+      }
+    }
+  }
+}

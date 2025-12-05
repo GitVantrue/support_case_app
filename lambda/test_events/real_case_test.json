@@ -1,0 +1,15 @@
+{
+  "version": "0",
+  "id": "test-event-real-case-athena",
+  "detail-type": "Support Case Update",
+  "source": "aws.support",
+  "region": "us-east-1",
+  "time": "2023-12-06T02:00:04.737Z",
+  "detail": {
+    "case-id": "case-370662402529-muko-2023-8a933541f4bc87c5",
+    "display-id": "14424339821",
+    "communication-id": "",
+    "event-name": "ResolveCase",
+    "origin": ""
+  }
+}
