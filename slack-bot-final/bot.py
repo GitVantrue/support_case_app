@@ -77,18 +77,59 @@ def clean_qcli_output(text: str) -> str:
     return result.strip()
 
 def format_response_blocks(query: str, response: str):
-    """응답을 Slack Block Kit 형식으로 포맷팅"""
-    blocks = [
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": f":mag: *AWS Support 케이스 검색 결과*\n\n*질문:* {query}\n\n{response}"
-            }
-        }
-    ]
+    """응답을 Slack Block Kit 형식으로 포맷팅 (3000자 제한 처리)"""
+    header = f":mag: *AWS Support 케이스 검색 결과*\n\n*질문:* {query}\n\n"
     
-    return blocks
+    # Slack Block 텍스트 최대 길이 (3000자)
+    MAX_BLOCK_LENGTH = 2900  # 여유 공간 확보
+    
+    # 헤더 + 응답이 제한을 초과하는 경우
+    if len(header + response) > MAX_BLOCK_LENGTH:
+        # 긴 응답은 여러 블록으로 분할
+        blocks = [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": header
+                }
+            }
+        ]
+        
+        # 응답을 청크로 분할
+        remaining = response
+        while remaining:
+            chunk_size = MAX_BLOCK_LENGTH
+            chunk = remaining[:chunk_size]
+            
+            # 마크다운이 깨지지 않도록 줄바꿈 위치에서 자르기
+            if len(remaining) > chunk_size:
+                last_newline = chunk.rfind('\n')
+                if last_newline > chunk_size * 0.7:  # 70% 이상 위치에 줄바꿈이 있으면
+                    chunk = chunk[:last_newline]
+            
+            blocks.append({
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": chunk
+                }
+            })
+            
+            remaining = remaining[len(chunk):].lstrip()
+        
+        return blocks
+    else:
+        # 짧은 응답은 하나의 블록으로
+        return [
+            {
+                "type": "section",
+                "text": {
+                    "type": "mrkdwn",
+                    "text": header + response
+                }
+            }
+        ]
 
 def query_with_qcli(user_message: str) -> str:
     """Q CLI를 사용하여 질문에 답변"""
