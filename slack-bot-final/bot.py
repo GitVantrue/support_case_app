@@ -5,6 +5,7 @@
 import os
 import subprocess
 import re
+from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -19,6 +20,9 @@ KB_ID = os.environ.get("KB_ID", "BECRJQ5RLE")
 
 # Slack App 초기화
 app = App(token=SLACK_BOT_TOKEN)
+
+# 스레드 풀 생성 (최대 10개 동시 처리)
+executor = ThreadPoolExecutor(max_workers=10, thread_name_prefix="slack-bot")
 
 def clean_qcli_output(text: str) -> str:
     """Q CLI 응답에서 불필요한 로그 및 메타 정보 제거"""
@@ -76,28 +80,10 @@ def format_response_blocks(query: str, response: str):
     """응답을 Slack Block Kit 형식으로 포맷팅"""
     blocks = [
         {
-            "type": "header",
-            "text": {
-                "type": "plain_text",
-                "text": "🔍 AWS Support 케이스 검색 결과",
-                "emoji": True
-            }
-        },
-        {
             "type": "section",
             "text": {
                 "type": "mrkdwn",
-                "text": f"*질문:* {query}"
-            }
-        },
-        {
-            "type": "divider"
-        },
-        {
-            "type": "section",
-            "text": {
-                "type": "mrkdwn",
-                "text": response
+                "text": f":mag: *AWS Support 케이스 검색 결과*\n\n*질문:* {query}\n\n{response}"
             }
         }
     ]
@@ -186,7 +172,7 @@ _📅 케이스 생성일: [YYYY-MM-DD]_
 
 @app.event("app_mention")
 def handle_mention(event, say):
-    """봇 멘션 이벤트 처리"""
+    """봇 멘션 이벤트 처리 (비동기)"""
     text = event.get("text", "")
     user = event.get("user")
     
@@ -197,25 +183,32 @@ def handle_mention(event, say):
         say(text="안녕하세요! 👋 AWS Support 케이스에 대해 질문해주세요.")
         return
     
-    try:
-        print(f"[질문] {user}: {query}")
-        
-        # Q CLI로 질문 처리
-        response = query_with_qcli(query)
-        
-        # Slack Block Kit으로 포맷팅된 응답
-        blocks = format_response_blocks(query, response)
-        
-        # Slack에 응답
-        say(blocks=blocks, text=response)
-        
-        print(f"[완료] {user}")
-        
-    except Exception as e:
-        print(f"[에러] {str(e)}")
-        import traceback
-        traceback.print_exc()
-        say(text="죄송합니다. 처리 중 오류가 발생했습니다.")
+    print(f"[수신] {user}: {query}")
+    
+    # 비동기 처리 함수
+    def process_async():
+        try:
+            print(f"[처리 시작] {user}: {query}")
+            
+            # Q CLI로 질문 처리
+            response = query_with_qcli(query)
+            
+            # Slack Block Kit으로 포맷팅된 응답
+            blocks = format_response_blocks(query, response)
+            
+            # Slack에 응답 (채널에 바로 답변)
+            say(blocks=blocks, text=response)
+            
+            print(f"[완료] {user}")
+            
+        except Exception as e:
+            print(f"[에러] {user}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            say(text=f"<@{user}> 죄송합니다. 처리 중 오류가 발생했습니다.")
+    
+    # 스레드 풀에 작업 제출 (즉시 리턴하여 다음 요청 받을 수 있음)
+    executor.submit(process_async)
 
 @app.event("message")
 def handle_message_events(body, logger):
